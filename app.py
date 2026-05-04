@@ -1,7 +1,12 @@
-from flask import Flask, render_template
+import os
+
+from flask import Flask, flash, redirect, render_template, request, session, url_for
+from werkzeug.security import generate_password_hash
+
 from database.db import get_db, init_db, seed_db
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "dev-fallback-change-in-prod")
 
 with app.app_context():
     init_db()
@@ -17,9 +22,47 @@ def landing():
     return render_template("landing.html")
 
 
-@app.route("/register")
+@app.route("/register", methods=["GET", "POST"])
 def register():
-    return render_template("register.html")
+    if request.method == "GET":
+        return render_template("register.html")
+
+    name = request.form.get("name", "").strip()
+    email = request.form.get("email", "").strip()
+    password = request.form.get("password", "")
+
+    if not name:
+        return render_template("register.html", error="Name is required.", name=name, email=email)
+    if not email:
+        return render_template("register.html", error="Email is required.", name=name, email=email)
+    if len(password) < 8:
+        return render_template("register.html", error="Password must be at least 8 characters.", name=name, email=email)
+
+    conn = get_db()
+    try:
+        existing = conn.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
+    finally:
+        conn.close()
+
+    if existing:
+        return render_template("register.html", error="An account with that email already exists.", name=name, email=email)
+
+    password_hash = generate_password_hash(password, method="pbkdf2:sha256")
+
+    conn = get_db()
+    try:
+        conn.execute(
+            "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
+            (name, email, password_hash),
+        )
+        conn.commit()
+        new_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+    finally:
+        conn.close()
+
+    session["user_id"] = new_id
+    flash("Welcome to Spendly! Your account has been created.", "success")
+    return redirect(url_for("landing"))
 
 
 @app.route("/login")
