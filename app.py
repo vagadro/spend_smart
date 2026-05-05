@@ -14,6 +14,23 @@ with app.app_context():
 
 
 # ------------------------------------------------------------------ #
+# Context processors                                                  #
+# ------------------------------------------------------------------ #
+
+@app.context_processor
+def inject_current_user():
+    user_id = session.get("user_id")
+    if not user_id:
+        return {"current_user": None}
+    conn = get_db()
+    try:
+        user = conn.execute("SELECT name FROM users WHERE id = ?", (user_id,)).fetchone()
+    finally:
+        conn.close()
+    return {"current_user": user}
+
+
+# ------------------------------------------------------------------ #
 # Routes                                                              #
 # ------------------------------------------------------------------ #
 
@@ -90,7 +107,7 @@ def login():
 
     session.clear()
     session["user_id"] = user["id"]
-    return redirect(url_for("landing"))
+    return redirect(url_for("profile"))
 
 
 @app.route("/terms")
@@ -115,7 +132,53 @@ def logout():
 
 @app.route("/profile")
 def profile():
-    return "Profile page — coming in Step 4"
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    conn = get_db()
+    try:
+        db_user = conn.execute(
+            "SELECT name, email, created_at FROM users WHERE id = ?", (session["user_id"],)
+        ).fetchone()
+    finally:
+        conn.close()
+
+    parts = db_user["name"].strip().split()
+    initials = "".join(p[0].upper() for p in parts[:2])
+    try:
+        from datetime import datetime
+        member_since = datetime.strptime(db_user["created_at"], "%Y-%m-%d %H:%M:%S").strftime("%B %Y")
+    except (ValueError, TypeError):
+        member_since = "—"
+
+    user = {
+        "name": db_user["name"],
+        "email": db_user["email"],
+        "initials": initials,
+        "member_since": member_since,
+    }
+    stats = [
+        {"label": "Total Spent",  "value": "₹4,872.50"},
+        {"label": "Transactions", "value": "24"},
+        {"label": "Top Category", "value": "Food"},
+    ]
+    transactions = [
+        {"date": "Apr 25", "description": "Restaurant dinner",    "category": "Food",          "amount": "₹22.75"},
+        {"date": "Apr 22", "description": "Miscellaneous",        "category": "Other",         "amount": "₹30.00"},
+        {"date": "Apr 20", "description": "Clothes",              "category": "Shopping",      "amount": "₹89.99"},
+        {"date": "Apr 15", "description": "Netflix subscription", "category": "Entertainment", "amount": "₹15.00"},
+        {"date": "Apr 12", "description": "Pharmacy",             "category": "Health",        "amount": "₹60.00"},
+    ]
+    categories = [
+        {"name": "Food",      "amount": "₹68.25",  "pct": 44},
+        {"name": "Bills",     "amount": "₹120.00", "pct": 25},
+        {"name": "Shopping",  "amount": "₹89.99",  "pct": 20},
+        {"name": "Transport", "amount": "₹25.00",  "pct": 11},
+    ]
+    return render_template("profile.html",
+                           user=user, stats=stats,
+                           transactions=transactions,
+                           categories=categories)
 
 
 @app.route("/expenses/add")
