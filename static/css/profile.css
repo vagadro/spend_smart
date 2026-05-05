@@ -1,0 +1,245 @@
+/* ------------------------------------------------------------------ */
+/* Profile page — scoped styles (.profile-*, .cat-*)                  */
+/* ------------------------------------------------------------------ */
+
+.profile-page {
+    max-width: var(--max-width);
+    margin: 3rem auto;
+    padding: 0 2rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Header card                                                         */
+/* ------------------------------------------------------------------ */
+
+.profile-header {
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.profile-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.profile-name {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--ink);
+    line-height: 1.2;
+}
+
+.profile-meta {
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+    margin-top: 0.3rem;
+}
+
+.profile-meta span {
+    margin: 0 0.4rem;
+    color: var(--border);
+}
+
+/* ------------------------------------------------------------------ */
+/* Stats row                                                           */
+/* ------------------------------------------------------------------ */
+
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.profile-stat-card {
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+}
+
+.profile-stat-value {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    color: var(--ink);
+    line-height: 1.1;
+}
+
+.profile-stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-top: 0.35rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Section wrapper                                                     */
+/* ------------------------------------------------------------------ */
+
+.profile-section {
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.75rem;
+    margin-bottom: 2rem;
+}
+
+.profile-section-title {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    color: var(--ink);
+    margin-bottom: 1.25rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Transaction table                                                   */
+/* ------------------------------------------------------------------ */
+
+.profile-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.profile-table th {
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.profile-table td {
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--border-soft);
+    color: var(--ink-soft);
+    vertical-align: middle;
+}
+
+.profile-table tr:last-child td {
+    border-bottom: none;
+}
+
+.profile-table .col-amount {
+    text-align: right;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    color: var(--ink);
+}
+
+.profile-table .col-date {
+    color: var(--ink-muted);
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ */
+/* Category badges                                                     */
+/* ------------------------------------------------------------------ */
+
+.cat-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+}
+
+.cat-food          { background: var(--accent-light);   color: var(--accent); }
+.cat-other         { background: var(--border-soft);    color: var(--ink-muted); }
+.cat-shopping      { background: var(--accent-2-light); color: var(--accent-2); }
+.cat-health        { background: var(--danger-light);   color: var(--danger); }
+.cat-bills         { background: var(--paper-warm);     color: var(--ink-soft); }
+/* purple and blue have no design-system variable — defined here only, not in templates */
+.cat-entertainment { background: #ede9fe; color: #6d28d9; }
+.cat-transport     { background: #e0f2fe; color: #0369a1; }
+
+/* ------------------------------------------------------------------ */
+/* Category breakdown                                                  */
+/* ------------------------------------------------------------------ */
+
+.profile-breakdown-row {
+    display: grid;
+    grid-template-columns: 110px 1fr 80px 40px;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.9rem;
+}
+
+.profile-breakdown-row:last-child {
+    margin-bottom: 0;
+}
+
+.breakdown-name {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+}
+
+.profile-bar-track {
+    height: 6px;
+    background: var(--border-soft);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.profile-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 999px;
+}
+
+.breakdown-amount {
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+    text-align: right;
+}
+
+.breakdown-pct {
+    font-size: 0.8rem;
+    color: var(--ink-faint);
+    text-align: right;
+}
+
+/* ------------------------------------------------------------------ */
+/* Responsive                                                          */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 600px) {
+    .profile-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-breakdown-row {
+        grid-template-columns: 80px 1fr 60px;
+    }
+
+    .breakdown-pct {
+        display: none;
+    }
+
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+}
