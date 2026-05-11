@@ -4,6 +4,7 @@ from flask import Flask, flash, redirect, render_template, request, session, url
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from database.db import get_db, init_db, seed_db
+from database.queries import get_user_by_id, get_summary_stats, get_recent_transactions, get_category_breakdown
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-fallback-change-in-prod")
@@ -135,46 +136,15 @@ def profile():
     if not session.get("user_id"):
         return redirect(url_for("login"))
 
-    conn = get_db()
-    try:
-        db_user = conn.execute(
-            "SELECT name, email, created_at FROM users WHERE id = ?", (session["user_id"],)
-        ).fetchone()
-    finally:
-        conn.close()
-
-    parts = db_user["name"].strip().split()
-    initials = "".join(p[0].upper() for p in parts[:2])
-    try:
-        from datetime import datetime
-        member_since = datetime.strptime(db_user["created_at"], "%Y-%m-%d %H:%M:%S").strftime("%B %Y")
-    except (ValueError, TypeError):
-        member_since = "—"
-
-    user = {
-        "name": db_user["name"],
-        "email": db_user["email"],
-        "initials": initials,
-        "member_since": member_since,
-    }
+    user = get_user_by_id(session["user_id"])
+    summary = get_summary_stats(session["user_id"])
     stats = [
-        {"label": "Total Spent",  "value": "₹4,872.50"},
-        {"label": "Transactions", "value": "24"},
-        {"label": "Top Category", "value": "Food"},
+        {"label": "Total Spent",  "value": summary["total_spent"]},
+        {"label": "Transactions", "value": summary["transaction_count"]},
+        {"label": "Top Category", "value": summary["top_category"]},
     ]
-    transactions = [
-        {"date": "Apr 25", "description": "Restaurant dinner",    "category": "Food",          "amount": "₹22.75"},
-        {"date": "Apr 22", "description": "Miscellaneous",        "category": "Other",         "amount": "₹30.00"},
-        {"date": "Apr 20", "description": "Clothes",              "category": "Shopping",      "amount": "₹89.99"},
-        {"date": "Apr 15", "description": "Netflix subscription", "category": "Entertainment", "amount": "₹15.00"},
-        {"date": "Apr 12", "description": "Pharmacy",             "category": "Health",        "amount": "₹60.00"},
-    ]
-    categories = [
-        {"name": "Food",      "amount": "₹68.25",  "pct": 44},
-        {"name": "Bills",     "amount": "₹120.00", "pct": 25},
-        {"name": "Shopping",  "amount": "₹89.99",  "pct": 20},
-        {"name": "Transport", "amount": "₹25.00",  "pct": 11},
-    ]
+    transactions = get_recent_transactions(session["user_id"])
+    categories = get_category_breakdown(session["user_id"])
     return render_template("profile.html",
                            user=user, stats=stats,
                            transactions=transactions,
