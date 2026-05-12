@@ -21,6 +21,26 @@
         </div>
     </div>
 
+    <!-- Date filter -->
+    <div class="filter-bar">
+        <a href="?period=this_month"    class="filter-btn{% if period == 'this_month' %} active{% endif %}">This Month</a>
+        <a href="?period=last_month"    class="filter-btn{% if period == 'last_month' %} active{% endif %}">Last Month</a>
+        <a href="?period=last_3_months" class="filter-btn{% if period == 'last_3_months' %} active{% endif %}">Last 3 Months</a>
+        <a href="?period=this_year"     class="filter-btn{% if period == 'this_year' %} active{% endif %}">This Year</a>
+        <a href="?period=all"           class="filter-btn{% if period == 'all' %} active{% endif %}">All Time</a>
+    </div>
+    <form class="filter-custom-range{% if custom_from and custom_to %} active{% endif %}" method="get" action="">
+        <label class="filter-date-label">
+            From
+            <input type="date" name="date_from" value="{{ custom_from }}" class="filter-date-input">
+        </label>
+        <label class="filter-date-label">
+            To
+            <input type="date" name="date_to" value="{{ custom_to }}" class="filter-date-input">
+        </label>
+        <button type="submit" class="filter-apply-btn">Apply</button>
+    </form>
+
     <!-- Summary stats -->
     <div class="profile-stats">
         {% for s in stats %}

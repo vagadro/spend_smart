@@ -1,4 +1,5 @@
 import os
+from datetime import date, timedelta
 
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -131,24 +132,70 @@ def logout():
     return redirect(url_for("landing"))
 
 
+def _period_dates(period):
+    today = date.today()
+    if period == "last_month":
+        first_this = today.replace(day=1)
+        last_prev = first_this - timedelta(days=1)
+        return last_prev.replace(day=1).isoformat(), last_prev.isoformat()
+    if period == "last_3_months":
+        first_this = today.replace(day=1)
+        m1 = (first_this - timedelta(days=1)).replace(day=1)
+        m2 = (m1 - timedelta(days=1)).replace(day=1)
+        m3 = (m2 - timedelta(days=1)).replace(day=1)
+        return m3.isoformat(), today.isoformat()
+    if period == "this_year":
+        return date(today.year, 1, 1).isoformat(), today.isoformat()
+    if period == "all":
+        return None, None
+    # default: this_month
+    return today.replace(day=1).isoformat(), today.isoformat()
+
+
 @app.route("/profile")
 def profile():
     if not session.get("user_id"):
         return redirect(url_for("login"))
 
-    user = get_user_by_id(session["user_id"])
-    summary = get_summary_stats(session["user_id"])
+    uid = session["user_id"]
+
+    # Custom date range takes priority over pre-set period buttons
+    custom_from = request.args.get("date_from", "").strip()
+    custom_to = request.args.get("date_to", "").strip()
+    period = None
+
+    if custom_from and custom_to:
+        try:
+            date.fromisoformat(custom_from)
+            date.fromisoformat(custom_to)
+            date_from, date_to = custom_from, custom_to
+        except ValueError:
+            custom_from = custom_to = ""
+
+    if not (custom_from and custom_to):
+        valid_periods = {"this_month", "last_month", "last_3_months", "this_year", "all"}
+        period = request.args.get("period", "this_month")
+        if period not in valid_periods:
+            period = "this_month"
+        date_from, date_to = _period_dates(period)
+        custom_from = custom_to = ""
+
+    user = get_user_by_id(uid)
+    summary = get_summary_stats(uid, date_from=date_from, date_to=date_to)
     stats = [
         {"label": "Total Spent",  "value": summary["total_spent"]},
         {"label": "Transactions", "value": summary["transaction_count"]},
         {"label": "Top Category", "value": summary["top_category"]},
     ]
-    transactions = get_recent_transactions(session["user_id"])
-    categories = get_category_breakdown(session["user_id"])
+    transactions = get_recent_transactions(uid, date_from=date_from, date_to=date_to)
+    categories = get_category_breakdown(uid, date_from=date_from, date_to=date_to)
     return render_template("profile.html",
                            user=user, stats=stats,
                            transactions=transactions,
-                           categories=categories)
+                           categories=categories,
+                           period=period,
+                           custom_from=custom_from,
+                           custom_to=custom_to)
 
 
 @app.route("/expenses/add")
